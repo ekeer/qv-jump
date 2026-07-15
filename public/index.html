@@ -123,51 +123,9 @@
 
   <main class="container">
 
-    <!-- QQ 接口 -->
-    <section>
-      <h2><span class="num" style="background:var(--qq)">1</span><span class="tag-qq">QQ 接口</span></h2>
-      <div class="group">
-        <div class="api-card qq">
-          <div class="api-head"><div class="api-title">跳转到 QQ 群</div><span class="api-tag qq">mqqapi</span></div>
-          <div class="api-desc">打开群名片，可申请加群</div>
-                  </div>
-        <div class="api-card qq">
-          <div class="api-head"><div class="api-title">发起临时会话</div><span class="api-tag qq">mqqwpa</span></div>
-          <div class="api-desc">无需加好友，打开临时聊天窗口</div>
-                  </div>
-        <div class="api-card qq">
-          <div class="api-head"><div class="api-title">跳转到 QQ 名片</div><span class="api-tag qq">mqqapi</span></div>
-          <div class="api-desc">打开个人名片，可加好友</div>
-                  </div>
-      </div>
-    </section>
-
-    <!-- 微信接口 -->
-    <section>
-      <h2><span class="num" style="background:var(--wx)">2</span><span class="tag-wx">微信接口</span></h2>
-      <div class="group">
-        <div class="api-card wx">
-          <div class="api-head"><div class="api-title">添加微信好友</div><span class="api-tag wx">weixin</span></div>
-          <div class="api-desc">输入微信号跳转加好友页（预填号）· 仅外部浏览器有效</div>
-                  </div>
-        <div class="api-card wx">
-          <div class="api-head"><div class="api-title">微信收款码</div><span class="api-tag wx">wxp</span></div>
-          <div class="api-desc">一键弹付款页 · 微信内外都能用 · 需配置环境变量</div>
-                  </div>
-        <div class="api-card wx">
-          <div class="api-head"><div class="api-title">微信扫一扫</div><span class="api-tag wx">weixin</span></div>
-          <div class="api-desc">唤起扫一扫功能 · 仅外部浏览器有效</div>
-                  </div>
-        <div class="api-card wx">
-          <div class="api-head"><div class="api-title">视频号资料页</div><span class="api-tag wx">weixin</span></div>
-          <div class="api-desc">跳转到指定视频号主页 · 仅外部浏览器有效</div>
-                  </div>
-      </div>
-    </section>
-
     <!-- 在线测试 -->
     <section>
-      <h2><span class="num">3</span>在线测试</h2>
+      <h2><span class="num">1</span>在线测试</h2>
       <div class="tester">
         <div class="row">
           <div class="field" style="min-width:200px;max-width:240px;">
@@ -196,24 +154,6 @@
           </div>
         </div>
         <div class="result" id="result"></div>
-      </div>
-    </section>
-
-    <!-- 部署说明 -->
-    <section>
-      <h2><span class="num">4</span>部署到 Cloudflare Pages</h2>
-      <div class="deploy">
-        <ol>
-          <li>推送到 GitHub / GitLab 仓库</li>
-          <li>Cloudflare Dashboard → Workers &amp; Pages → Create → Pages → Connect to Git</li>
-          <li>构建配置：Framework preset 选 <code>None</code>，Build command 留空，Build output directory 填 <code>.</code></li>
-          <li>点 <code>Save and Deploy</code>，几秒后访问 <code>https://&lt;project&gt;.pages.dev</code></li>
-          <li><b>微信收款码</b>：在 Pages 项目 Settings → Environment variables 添加 <code>WXP_PAY_URL</code>，值为从微信提取的 <code>wxp://</code> 收款码链接</li>
-        </ol>
-        <div class="note">
-          ⚠️ <b>微信限制</b>：<code>weixin://</code> 协议在微信内置浏览器中会被拦截，加好友/扫一扫/视频号接口仅在<strong>外部浏览器</strong>（Safari/Chrome/系统浏览器）点击有效。但 <code>wxp://</code> 收款码在微信内外都能弹付款。
-        </div>
-        <p style="margin-top:12px;font-size:13px;color:var(--text-3);">本地预览：<code>node dev-preview.mjs</code> 或 <code>npx wrangler pages dev .</code></p>
       </div>
     </section>
   </main>
