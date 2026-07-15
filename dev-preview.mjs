@@ -28,7 +28,7 @@ function handleQun(url) {
   const qun = (url.searchParams.get('qun') || '').trim();
   if (!qun) return err('缺少 qun 参数');
   if (!isValidUin(qun)) return err('qun 参数格式不正确（应为 4-14 位纯数字）');
-  return redir(`mqqapi://card/show_pslcard?src_type=internal&version=1&card_type=group&uin=${qun}`);
+  return redir(`mqqwpa://im/chat?chat_type=group&uin=${qun}`);
 }
 function handleChat(url) {
   const qq = (url.searchParams.get('qq') || '').trim();
