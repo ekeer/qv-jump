@@ -80,7 +80,7 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/' || pathname === '/index.html') {
     try {
-      const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
+      const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf-8');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
     } catch (e) {
