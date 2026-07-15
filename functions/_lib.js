@@ -209,13 +209,18 @@ export function buildErrorResponse(message, status = 400) {
 }
 
 /**
- * 跳转：JS location.replace + APP 内置浏览器兜底提示
- * - 外部浏览器：location.replace 直接唤起，用户无感
- * - QQ/微信内置浏览器：协议被拦截，600ms 后显示"请在浏览器中打开"提示
+ * 跳转：iframe 方式（QQ/微信内置浏览器兼容）+ location.replace（外部浏览器）
+ * - mqqapi:// 自动加 source=qrcode 参数（腾讯官方方案，模拟扫码场景提升兼容性）
+ * - APP 内置浏览器：隐藏 iframe 加载协议（腾讯官方方案，不导航不白屏）
+ * - 外部浏览器：location.replace 直接唤起
  */
 export function buildRedirect(targetUrl) {
-  const json = JSON.stringify(targetUrl);
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>跳转中</title><style>#tip{display:none;position:fixed;top:0;left:0;right:0;bottom:0;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2329}#tip.show{display:flex}.a{font-size:36px;margin-bottom:20px}h3{font-size:17px;font-weight:600;margin:0 0 10px}p{font-size:14px;color:#8a8f99;line-height:1.6;margin:0}b{color:#1f2329}</style></head><body><div id="tip"><div class="a">↗</div><h3>请在浏览器中打开</h3><p>点击右上角 <b>···</b> 选择"在浏览器打开"</p></div><script>(function(){var u=${json};try{location.replace(u)}catch(e){location.href=u}if(/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent)){setTimeout(function(){document.getElementById('tip').classList.add('show')},600)}})()</script></body></html>`;
+  let url = targetUrl;
+  if (url.startsWith('mqqapi://') && !url.includes('source=')) {
+    url += '&source=qrcode';
+  }
+  const json = JSON.stringify(url);
+  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"></head><body><script>(function(){var u=${json};var inApp=/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent);if(inApp){var f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(function(){try{f.parentNode.removeChild(f)}catch(e){}},2000)}else{try{location.replace(u)}catch(e){location.href=u}}})()</script></body></html>`;
   return new Response(html, {
     status: 200,
     headers: {
