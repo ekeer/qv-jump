@@ -209,14 +209,13 @@ export function buildErrorResponse(message, status = 400) {
 }
 
 /**
- * 极简跳转：无 UI，只有一行 JS location.replace
- * 比 302 重定向在 APP 内置浏览器（QQ/微信）里兼容性更好
- * - location.replace 不留浏览器历史记录
- * - 无引导页 UI，页面瞬间跳转，用户看不到中间页
+ * 跳转：JS location.replace + APP 内置浏览器兜底提示
+ * - 外部浏览器：location.replace 直接唤起，用户无感
+ * - QQ/微信内置浏览器：协议被拦截，600ms 后显示"请在浏览器中打开"提示
  */
 export function buildRedirect(targetUrl) {
   const json = JSON.stringify(targetUrl);
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><script>location.replace(${json})</script></head><body></body></html>`;
+  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>跳转中</title><style>#tip{display:none;position:fixed;top:0;left:0;right:0;bottom:0;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2329}#tip.show{display:flex}.a{font-size:36px;margin-bottom:20px}h3{font-size:17px;font-weight:600;margin:0 0 10px}p{font-size:14px;color:#8a8f99;line-height:1.6;margin:0}b{color:#1f2329}</style></head><body><div id="tip"><div class="a">↗</div><h3>请在浏览器中打开</h3><p>点击右上角 <b>···</b> 选择"在浏览器打开"</p></div><script>(function(){var u=${json};try{location.replace(u)}catch(e){location.href=u}if(/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent)){setTimeout(function(){document.getElementById('tip').classList.add('show')},600)}})()</script></body></html>`;
   return new Response(html, {
     status: 200,
     headers: {
