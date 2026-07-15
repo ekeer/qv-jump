@@ -209,18 +209,19 @@ export function buildErrorResponse(message, status = 400) {
 }
 
 /**
- * 跳转：iframe 方式（QQ/微信内置浏览器兼容）+ location.replace（外部浏览器）
- * - mqqapi:// 自动加 source=qrcode 参数（腾讯官方方案，模拟扫码场景提升兼容性）
- * - APP 内置浏览器：隐藏 iframe 加载协议（腾讯官方方案，不导航不白屏）
+ * 跳转：QQ JS-SDK + iframe + location.replace 三重保障
+ * - mqqapi:// 自动加 source=qrcode&web_src=qq.com（伪装来源，提升 QQ 内兼容性）
+ * - APP 内：加载 QQ JS-SDK，mqq.ui.openUrl 打开协议 + iframe 兜底
  * - 外部浏览器：location.replace 直接唤起
  */
 export function buildRedirect(targetUrl) {
   let url = targetUrl;
-  if (url.startsWith('mqqapi://') && !url.includes('source=')) {
-    url += '&source=qrcode';
+  if (url.startsWith('mqqapi://')) {
+    if (!url.includes('source=')) url += '&source=qrcode';
+    if (!url.includes('web_src=')) url += '&web_src=qq.com';
   }
   const json = JSON.stringify(url);
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"></head><body><script>(function(){var u=${json};var inApp=/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent);if(inApp){var f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(function(){try{f.parentNode.removeChild(f)}catch(e){}},2000)}else{try{location.replace(u)}catch(e){location.href=u}}})()</script></body></html>`;
+  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><script src="https://open.mobile.qq.com/sdk/qqapi.js?_bid=152"></script></head><body><script>(function(){var u=${json};var inApp=/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent);if(inApp){if(window.mqq&&mqq.ui&&mqq.ui.openUrl){try{mqq.ui.openUrl({target:0,url:u})}catch(e){}}var f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(function(){try{f.parentNode.removeChild(f)}catch(e){}},2000)}else{try{location.replace(u)}catch(e){location.href=u}}})()</script></body></html>`;
   return new Response(html, {
     status: 200,
     headers: {

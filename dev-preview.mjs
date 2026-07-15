@@ -14,11 +14,12 @@ const PORT = process.env.PORT || 8788;
 
 function redir(targetUrl) {
   let url = targetUrl;
-  if (url.startsWith('mqqapi://') && !url.includes('source=')) {
-    url += '&source=qrcode';
+  if (url.startsWith('mqqapi://')) {
+    if (!url.includes('source=')) url += '&source=qrcode';
+    if (!url.includes('web_src=')) url += '&web_src=qq.com';
   }
   const json = JSON.stringify(url);
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"></head><body><script>(function(){var u=${json};var inApp=/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent);if(inApp){var f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(function(){try{f.parentNode.removeChild(f)}catch(e){}},2000)}else{try{location.replace(u)}catch(e){location.href=u}}})()</script></body></html>`;
+  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><script src="https://open.mobile.qq.com/sdk/qqapi.js?_bid=152"></script></head><body><script>(function(){var u=${json};var inApp=/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent);if(inApp){if(window.mqq&&mqq.ui&&mqq.ui.openUrl){try{mqq.ui.openUrl({target:0,url:u})}catch(e){}}var f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(function(){try{f.parentNode.removeChild(f)}catch(e){}},2000)}else{try{location.replace(u)}catch(e){location.href=u}}})()</script></body></html>`;
   return { status: 200, body: html };
 }
 function err(msg, status = 400) { return { status, body: renderErrorHtml(msg) }; }
