@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>QQ / 微信 跳转服务 · qqjump</title>
+<meta name="description" content="Cloudflare Pages 跳转服务：QQ 群/名片/临时会话 + 微信加好友/收款/扫一扫/视频号">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --qq: #12b7f5;
+    --qq-dark: #0d8ad0;
+    --wx: #07c160;
+    --wx-dark: #06ad56;
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1f2329;
+    --text-2: #5c6066;
+    --text-3: #8a8f99;
+    --border: #ebedf0;
+    --code-bg: #f7f8fa;
+    --radius: 14px;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  .container { max-width: 920px; margin: 0 auto; padding: 0 20px; }
+
+  /* Hero */
+  .hero { padding: 52px 0 32px; text-align: center; }
+  .logo-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 18px; }
+  .logo-chip {
+    width: 56px; height: 56px;
+    border-radius: 15px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 1px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+  .logo-chip.qq { background: linear-gradient(135deg, var(--qq), var(--qq-dark)); }
+  .logo-chip.wx { background: linear-gradient(135deg, var(--wx), var(--wx-dark)); }
+  .hero h1 { font-size: 25px; font-weight: 700; margin-bottom: 8px; }
+  .hero p { color: var(--text-3); font-size: 14px; }
+  .badges { margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #fff; color: var(--text-2); border: 1px solid var(--border); }
+
+  /* Section */
+  section { padding: 14px 0; }
+  h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  h2 .num { width: 22px; height: 22px; border-radius: 7px; background: var(--text); color: #fff; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  h2 .tag-qq { color: var(--qq-dark); }
+  h2 .tag-wx { color: var(--wx-dark); }
+
+  /* Group */
+  .group { margin-bottom: 20px; }
+  .group-title { font-size: 13px; font-weight: 600; color: var(--text-3); margin-bottom: 10px; padding-left: 4px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.qq { background: var(--qq); }
+  .dot.wx { background: var(--wx); }
+
+  /* API card */
+  .api-card { background: var(--card); border-radius: var(--radius); padding: 16px 18px; border: 1px solid var(--border); margin-bottom: 10px; transition: box-shadow .2s ease; border-left: 3px solid transparent; }
+  .api-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+  .api-card.qq { border-left-color: var(--qq); }
+  .api-card.wx { border-left-color: var(--wx); }
+  .api-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .api-title { font-size: 14.5px; font-weight: 600; }
+  .api-tag { font-size: 11px; padding: 2px 8px; border-radius: 6px; font-family: "SF Mono", Menlo, Consolas, monospace; }
+  .api-tag.qq { background: #e6f6fd; color: var(--qq-dark); }
+  .api-tag.wx { background: #e6f7ee; color: var(--wx-dark); }
+  .api-desc { font-size: 12.5px; color: var(--text-3); margin-bottom: 10px; }
+  .api-code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; background: var(--code-bg); padding: 9px 11px; border-radius: 8px; color: var(--text-2); overflow-x: auto; border: 1px solid var(--border); word-break: break-all; }
+  .api-code .k { color: #0b7ec2; }
+  .api-code .v { color: #d8479b; }
+  .api-code .p { color: #8a8f99; }
+
+  /* Tester */
+  .tester { background: var(--card); border-radius: var(--radius); padding: 22px; border: 1px solid var(--border); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .field { flex: 1; min-width: 160px; }
+  .field label { display: block; font-size: 12px; color: var(--text-3); margin-bottom: 6px; }
+  .field input, .field select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; background: #fff; color: var(--text); outline: none; transition: border-color .15s ease, box-shadow .15s ease; font-family: inherit; }
+  .field input:focus, .field select:focus { border-color: var(--qq); box-shadow: 0 0 0 3px rgba(18,183,245,0.12); }
+  .field.wx-focus input:focus, .field.wx-focus select:focus { border-color: var(--wx); box-shadow: 0 0 0 3px rgba(7,193,96,0.12); }
+  .btn { padding: 10px 20px; border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: transform .15s ease, background .15s ease; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:active { transform: scale(0.97); }
+  .btn.qq { background: var(--qq); }
+  .btn.qq:hover { background: var(--qq-dark); }
+  .btn.wx { background: var(--wx); }
+  .btn.wx:hover { background: var(--wx-dark); }
+  .btn.ghost { background: #fff; color: var(--text-2); border: 1px solid var(--border); }
+  .btn.ghost:hover { background: #f7f8fa; }
+  .result { margin-top: 14px; padding: 12px; background: var(--code-bg); border-radius: 10px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: var(--text-2); word-break: break-all; display: none; border: 1px solid var(--border); }
+  .result.show { display: block; }
+
+  /* Deploy */
+  .deploy { background: var(--card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); }
+  .deploy ol { padding-left: 20px; color: var(--text-2); font-size: 13.5px; }
+  .deploy ol li { margin-bottom: 8px; line-height: 1.7; }
+  .deploy code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; color: var(--wx-dark); }
+  .deploy .note { margin-top: 12px; padding: 12px 14px; background: #fff8e6; border-radius: 10px; font-size: 13px; color: #8a6d3b; border: 1px solid #ffe9b3; }
+  .deploy .note code { background: #fff; color: #b8860b; }
+
+  footer { padding: 36px 0 26px; text-align: center; color: var(--text-3); font-size: 12px; }
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <div class="logo-row">
+        <div class="logo-chip qq">QQ</div>
+        <div class="logo-chip wx">微信</div>
+      </div>
+      <h1>QQ / 微信 跳转服务</h1>
+      <p>基于 Cloudflare Pages Functions · 一行链接唤起客户端</p>
+      <div class="badges">
+        <span class="badge">mqqapi / weixin / wxp</span>
+        <span class="badge">无残留</span>
+        <span class="badge">Cloudflare Pages 免费托管</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- QQ 接口 -->
+    <section>
+      <h2><span class="num" style="background:var(--qq)">1</span><span class="tag-qq">QQ 接口</span></h2>
+      <div class="group">
+        <div class="api-card qq">
+          <div class="api-head"><div class="api-title">跳转到 QQ 群</div><span class="api-tag qq">mqqapi</span></div>
+          <div class="api-desc">打开群名片，可申请加群</div>
+          <div class="api-code">/<span class="k">api-qq.qun</span>?<span class="p">qun</span>=<span class="v">群号</span></div>
+        </div>
+        <div class="api-card qq">
+          <div class="api-head"><div class="api-title">发起临时会话</div><span class="api-tag qq">mqqwpa</span></div>
+          <div class="api-desc">无需加好友，打开临时聊天窗口</div>
+          <div class="api-code">/<span class="k">api-qq.chat</span>?<span class="p">qq</span>=<span class="v">QQ号</span></div>
+        </div>
+        <div class="api-card qq">
+          <div class="api-head"><div class="api-title">跳转到 QQ 名片</div><span class="api-tag qq">mqqapi</span></div>
+          <div class="api-desc">打开个人名片，可加好友</div>
+          <div class="api-code">/<span class="k">api-qq</span>?<span class="p">qq</span>=<span class="v">QQ号</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 微信接口 -->
+    <section>
+      <h2><span class="num" style="background:var(--wx)">2</span><span class="tag-wx">微信接口</span></h2>
+      <div class="group">
+        <div class="api-card wx">
+          <div class="api-head"><div class="api-title">添加微信好友</div><span class="api-tag wx">weixin</span></div>
+          <div class="api-desc">输入微信号跳转加好友页（预填号）· 仅外部浏览器有效</div>
+          <div class="api-code">/<span class="k">api-wx</span>?<span class="p">wx</span>=<span class="v">微信号</span></div>
+        </div>
+        <div class="api-card wx">
+          <div class="api-head"><div class="api-title">微信收款码</div><span class="api-tag wx">wxp</span></div>
+          <div class="api-desc">一键弹付款页 · 微信内外都能用 · 需配置环境变量</div>
+          <div class="api-code">/<span class="k">api-wx.pay</span></div>
+        </div>
+        <div class="api-card wx">
+          <div class="api-head"><div class="api-title">微信扫一扫</div><span class="api-tag wx">weixin</span></div>
+          <div class="api-desc">唤起扫一扫功能 · 仅外部浏览器有效</div>
+          <div class="api-code">/<span class="k">api-wx.scan</span></div>
+        </div>
+        <div class="api-card wx">
+          <div class="api-head"><div class="api-title">视频号资料页</div><span class="api-tag wx">weixin</span></div>
+          <div class="api-desc">跳转到指定视频号主页 · 仅外部浏览器有效</div>
+          <div class="api-code">/<span class="k">api-wx.channels</span>?<span class="p">username</span>=<span class="v">视频号ID</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 在线测试 -->
+    <section>
+      <h2><span class="num">3</span>在线测试</h2>
+      <div class="tester">
+        <div class="row">
+          <div class="field" style="min-width:200px;max-width:240px;">
+            <label>选择接口</label>
+            <select id="type">
+              <optgroup label="QQ">
+                <option value="qun" data-brand="qq">跳群 (api-qq.qun)</option>
+                <option value="chat" data-brand="qq">临时会话 (api-qq.chat)</option>
+                <option value="card" data-brand="qq">名片 (api-qq)</option>
+              </optgroup>
+              <optgroup label="微信">
+                <option value="wx" data-brand="wx">加好友 (api-wx)</option>
+                <option value="pay" data-brand="wx">收款码 (api-wx.pay)</option>
+                <option value="scan" data-brand="wx">扫一扫 (api-wx.scan)</option>
+                <option value="channels" data-brand="wx">视频号 (api-wx.channels)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field" id="param-field">
+            <label id="param-label">群号</label>
+            <input id="uin" type="text" inputmode="numeric" pattern="\d*" placeholder="输入群号">
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn qq" id="open-btn">立即跳转</button>
+            <button class="btn ghost" id="copy-btn">复制链接</button>
+          </div>
+        </div>
+        <div class="result" id="result"></div>
+      </div>
+    </section>
+
+    <!-- 部署说明 -->
+    <section>
+      <h2><span class="num">4</span>部署到 Cloudflare Pages</h2>
+      <div class="deploy">
+        <ol>
+          <li>推送到 GitHub / GitLab 仓库</li>
+          <li>Cloudflare Dashboard → Workers &amp; Pages → Create → Pages → Connect to Git</li>
+          <li>构建配置：Framework preset 选 <code>None</code>，Build command 留空，Build output directory 填 <code>.</code></li>
+          <li>点 <code>Save and Deploy</code>，几秒后访问 <code>https://&lt;project&gt;.pages.dev</code></li>
+          <li><b>微信收款码</b>：在 Pages 项目 Settings → Environment variables 添加 <code>WXP_PAY_URL</code>，值为从微信提取的 <code>wxp://</code> 收款码链接</li>
+        </ol>
+        <div class="note">
+          ⚠️ <b>微信限制</b>：<code>weixin://</code> 协议在微信内置浏览器中会被拦截，加好友/扫一扫/视频号接口仅在<strong>外部浏览器</strong>（Safari/Chrome/系统浏览器）点击有效。但 <code>wxp://</code> 收款码在微信内外都能弹付款。
+        </div>
+        <p style="margin-top:12px;font-size:13px;color:var(--text-3);">本地预览：<code>node dev-preview.mjs</code> 或 <code>npx wrangler pages dev .</code></p>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="container">qqjump · QQ + 微信跳转 · Cloudflare Pages 免费托管</div></footer>
+
+  <script>
+    var typeEl = document.getElementById('type');
+    var uinEl = document.getElementById('uin');
+    var paramField = document.getElementById('param-field');
+    var paramLabel = document.getElementById('param-label');
+    var openBtn = document.getElementById('open-btn');
+    var copyBtn = document.getElementById('copy-btn');
+    var resultEl = document.getElementById('result');
+
+    // 接口配置表
+    var CONFIG = {
+      qun:       { path: '/api-qq.qun',       param: 'qun',      label: '群号',     brand: 'qq', validate: /^\d{4,14}$/, placeholder: '输入群号，如 123456789' },
+      chat:      { path: '/api-qq.chat',      param: 'qq',       label: 'QQ号',     brand: 'qq', validate: /^\d{4,14}$/, placeholder: '输入QQ号，如 10001' },
+      card:      { path: '/api-qq',           param: 'qq',       label: 'QQ号',     brand: 'qq', validate: /^\d{4,14}$/, placeholder: '输入QQ号，如 10001' },
+      wx:        { path: '/api-wx',           param: 'wx',       label: '微信号',   brand: 'wx', validate: /^[a-zA-Z][a-zA-Z0-9_-]{5,19}$/, placeholder: '输入微信号，如 abc123' },
+      pay:       { path: '/api-wx.pay',       param: null,       label: '',         brand: 'wx', validate: null, placeholder: '' },
+      scan:      { path: '/api-wx.scan',      param: null,       label: '',         brand: 'wx', validate: null, placeholder: '' },
+      channels:  { path: '/api-wx.channels',  param: 'username', label: '视频号ID', brand: 'wx', validate: /^[a-zA-Z0-9_@.-]{1,64}$/, placeholder: '输入视频号ID' }
+    };
+
+    function currentConfig() { return CONFIG[typeEl.value]; }
+
+    function updateUI() {
+      var cfg = currentConfig();
+      // 参数输入框显示/隐藏
+      if (cfg.param) {
+        paramField.style.display = '';
+        paramLabel.textContent = cfg.label;
+        uinEl.placeholder = cfg.placeholder;
+        uinEl.value = '';
+      } else {
+        paramField.style.display = 'none';
+      }
+      // 按钮主题色
+      openBtn.className = 'btn ' + cfg.brand;
+      // 输入框聚焦色
+      paramField.className = 'field' + (cfg.brand === 'wx' ? ' wx-focus' : '');
+      resultEl.classList.remove('show');
+    }
+
+    function buildUrl() {
+      var cfg = currentConfig();
+      var base = window.location.origin;
+      if (!cfg.param) return base + cfg.path;
+      return base + cfg.path + '?' + cfg.param + '=' + encodeURIComponent(uinEl.value.trim());
+    }
+
+    function validate() {
+      var cfg = currentConfig();
+      if (!cfg.validate) return true;
+      if (!cfg.validate.test(uinEl.value.trim())) {
+        alert('参数格式不正确：' + cfg.label);
+        return false;
+      }
+      return true;
+    }
+
+    typeEl.addEventListener('change', updateUI);
+    updateUI();
+
+    openBtn.addEventListener('click', function() {
+      if (!validate()) return;
+      var url = buildUrl();
+      resultEl.textContent = url;
+      resultEl.classList.add('show');
+      window.open(url, '_blank');
+    });
+
+    copyBtn.addEventListener('click', function() {
+      if (!validate()) return;
+      var url = buildUrl();
+      navigator.clipboard.writeText(url).then(function() {
+        copyBtn.textContent = '已复制 ✓';
+        resultEl.textContent = url;
+        resultEl.classList.add('show');
+        setTimeout(function() { copyBtn.textContent = '复制链接'; }, 1500);
+      }).catch(function() {
+        resultEl.textContent = url;
+        resultEl.classList.add('show');
+        prompt('请手动复制：', url);
+      });
+    });
+  </script>
+</body>
+</html>
