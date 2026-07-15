@@ -1,12 +1,9 @@
 // 路由: /api-qq.chat?qq=QQ号
 // 功能: 发起 QQ 临时会话（WPA）
 // 协议: mqqwpa://im/chat?chat_type=wpa
-//
-// 说明: mqqapi 协议本身没有提供稳定的"临时会话"子命令，
-// 腾讯官方临时会话统一使用 mqqwpa 协议（属于 mqq 系列协议之一）。
-// 因此本接口使用 mqqwpa，仍是 mqq 协议族，符合"用 mqqapi 协议"的整体要求。
+// 跳转方式: 302 直接重定向，零中间页
 
-import { buildJumpPage, buildErrorResponse, isValidUin } from './_lib.js';
+import { buildErrorResponse, isValidUin } from './_lib.js';
 
 export async function onRequestGet(context) {
   const { request } = context;
@@ -20,9 +17,7 @@ export async function onRequestGet(context) {
     return buildErrorResponse('qq 参数格式不正确（应为 4-14 位纯数字）');
   }
 
-  // 临时会话 - mqqwpa 协议
-  const target = `mqqwpa://im/chat?chat_type=wpa&uin=${qq}&version=1&src_type=web`;
-  return buildJumpPage(target, '发起临时会话', { uin: `QQ: ${qq}` });
+  return Response.redirect(`mqqwpa://im/chat?chat_type=wpa&uin=${qq}&version=1&src_type=web`, 302);
 }
 
 export const onRequestPost = onRequestGet;

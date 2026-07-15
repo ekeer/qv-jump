@@ -1,8 +1,9 @@
 // 路由: /api-qq?qq=QQ号
 // 功能: 跳转到 QQ 个人名片
 // 协议: mqqapi://card/show_pslcard
+// 跳转方式: 302 直接重定向，零中间页
 
-import { buildJumpPage, buildErrorResponse, isValidUin } from './_lib.js';
+import { buildErrorResponse, isValidUin } from './_lib.js';
 
 export async function onRequestGet(context) {
   const { request } = context;
@@ -16,10 +17,7 @@ export async function onRequestGet(context) {
     return buildErrorResponse('qq 参数格式不正确（应为 4-14 位纯数字）');
   }
 
-  // QQ 个人名片
-  const target = `mqqapi://card/show_pslcard?src_type=internal&version=1&uin=${qq}`;
-  return buildJumpPage(target, '查看名片', { uin: `QQ: ${qq}` });
+  return Response.redirect(`mqqapi://card/show_pslcard?src_type=internal&version=1&uin=${qq}`, 302);
 }
 
-// 同时支持 POST（方便表单提交场景）
 export const onRequestPost = onRequestGet;
