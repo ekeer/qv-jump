@@ -1,1 +1,17 @@
-{"name":"qv-jump","version":"1.0.0","description":"Cloudflare Pages QQ/wechat protocol redirect service","private":true,"type":"module","scripts":{"dev":"node dev-preview.mjs","start":"node dev-preview.mjs"},"keywords":["cloudflare-pages","qq","wechat","mqqapi","weixin","wxp","redirect"],"license":"MIT"}
+{
+  "name": "qv-jump",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers QQ/wechat protocol redirect service",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-preview.mjs",
+    "start": "node dev-preview.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": ["cloudflare-workers", "qq", "wechat", "mqqapi", "weixin", "wxp", "redirect"],
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
