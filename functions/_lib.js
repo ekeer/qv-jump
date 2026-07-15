@@ -208,6 +208,25 @@ export function buildErrorResponse(message, status = 400) {
   });
 }
 
+/**
+ * 极简跳转：无 UI，只有一行 JS location.replace
+ * 比 302 重定向在 APP 内置浏览器（QQ/微信）里兼容性更好
+ * - location.replace 不留浏览器历史记录
+ * - 无引导页 UI，页面瞬间跳转，用户看不到中间页
+ */
+export function buildRedirect(targetUrl) {
+  const json = JSON.stringify(targetUrl);
+  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><script>location.replace(${json})</script></head><body></body></html>`;
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Referrer-Policy': 'no-referrer'
+    }
+  });
+}
+
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, '&amp;')

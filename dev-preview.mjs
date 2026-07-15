@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 本地预览服务器 —— 302 直接重定向（与生产环境一致）
+// 本地预览服务器 —— 极简 JS 跳转（与生产环境一致）
 // 用法: node dev-preview.mjs
 // 微信收款码: WXP_PAY_URL="wxp://f2f0xxxx" node dev-preview.mjs
 
@@ -12,7 +12,14 @@ import { renderErrorHtml, isValidUin, isValidWechatId, isValidChannelsId } from 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 8788;
 
-// ---------- QQ 接口 ----------
+function redir(targetUrl) {
+  const json = JSON.stringify(targetUrl);
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script>location.replace(${json})</script></head><body></body></html>`;
+  return { status: 200, body: html };
+}
+function err(msg, status = 400) { return { status, body: renderErrorHtml(msg) }; }
+
+// ---- QQ ----
 function handleQun(url) {
   const qun = (url.searchParams.get('qun') || '').trim();
   if (!qun) return err('缺少 qun 参数');
@@ -32,7 +39,7 @@ function handleCard(url) {
   return redir(`mqqapi://card/show_pslcard?src_type=internal&version=1&uin=${qq}`);
 }
 
-// ---------- 微信接口 ----------
+// ---- 微信 ----
 function handleWxAdd(url) {
   const wx = (url.searchParams.get('wx') || '').trim();
   if (!wx) return err('缺少 wx 参数');
@@ -44,9 +51,7 @@ function handleWxPay() {
   if (!payUrl) return err('收款码未配置：请设置环境变量 WXP_PAY_URL', 500);
   return redir(payUrl);
 }
-function handleWxScan() {
-  return redir('weixin://dl/scan');
-}
+function handleWxScan() { return redir('weixin://dl/scan'); }
 function handleWxChannels(url) {
   const username = (url.searchParams.get('username') || '').trim();
   if (!username) return err('缺少 username 参数');
@@ -54,10 +59,6 @@ function handleWxChannels(url) {
   return redir(`weixin://channelsprofile?username=${encodeURIComponent(username)}`);
 }
 
-function redir(location) { return { status: 302, location }; }
-function err(msg, status = 400) { return { status, body: renderErrorHtml(msg) }; }
-
-// ---------- 路由 ----------
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
@@ -84,13 +85,8 @@ const server = http.createServer((req, res) => {
   else if (pathname === '/api-wx.channels') result = handleWxChannels(url);
 
   if (result) {
-    if (result.location) {
-      res.writeHead(302, { Location: result.location });
-      res.end();
-    } else {
-      res.writeHead(result.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-      res.end(result.body);
-    }
+    res.writeHead(result.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(result.body);
     return;
   }
 
@@ -100,18 +96,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   const base = `http://localhost:${PORT}`;
-  const wxpStatus = process.env.WXP_PAY_URL ? '✓ 已配置' : '✗ 未配置 WXP_PAY_URL';
-  console.log('');
-  console.log('  QQ / 微信 跳转预览 ✓ (302 直接重定向)');
-  console.log('  ────────────────────────────────────────');
-  console.log(`  跳群:     ${base}/api-qq.qun?qun=123456789`);
-  console.log(`  临时会话: ${base}/api-qq.chat?qq=10001`);
-  console.log(`  名片:     ${base}/api-qq?qq=10001`);
-  console.log(`  加好友:   ${base}/api-wx?wx=abc123`);
-  console.log(`  收款码:   ${base}/api-wx.pay  (${wxpStatus})`);
-  console.log(`  扫一扫:   ${base}/api-wx.scan`);
-  console.log(`  视频号:   ${base}/api-wx.channels?username=v2_xxx`);
-  console.log('  ────────────────────────────────────────');
-  console.log('  Ctrl+C 停止');
-  console.log('');
+  const wxp = process.env.WXP_PAY_URL ? '✓' : '✗';
+  console.log(`\n  QQ/微信跳转预览 ✓ (JS location.replace)\n  ─────────────────────────────\n  跳群:     ${base}/api-qq.qun?qun=123456789\n  临时会话: ${base}/api-qq.chat?qq=10001\n  名片:     ${base}/api-qq?qq=10001\n  加好友:   ${base}/api-wx?wx=abc123\n  收款码:   ${base}/api-wx.pay  (${wxp})\n  扫一扫:   ${base}/api-wx.scan\n  视频号:   ${base}/api-wx.channels?username=v2_xxx\n  ─────────────────────────────\n  Ctrl+C 停止\n`);
 });
