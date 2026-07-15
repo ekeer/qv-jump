@@ -73,10 +73,6 @@
   .api-tag.qq { background: #e6f6fd; color: var(--qq-dark); }
   .api-tag.wx { background: #e6f7ee; color: var(--wx-dark); }
   .api-desc { font-size: 12.5px; color: var(--text-3); margin-bottom: 10px; }
-  .api-code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; background: var(--code-bg); padding: 9px 11px; border-radius: 8px; color: var(--text-2); overflow-x: auto; border: 1px solid var(--border); word-break: break-all; }
-  .api-code .k { color: #0b7ec2; }
-  .api-code .v { color: #d8479b; }
-  .api-code .p { color: #8a8f99; }
 
   /* Tester */
   .tester { background: var(--card); border-radius: var(--radius); padding: 22px; border: 1px solid var(--border); }
@@ -134,18 +130,15 @@
         <div class="api-card qq">
           <div class="api-head"><div class="api-title">跳转到 QQ 群</div><span class="api-tag qq">mqqapi</span></div>
           <div class="api-desc">打开群名片，可申请加群</div>
-          <div class="api-code">/<span class="k">api-qq.qun</span>?<span class="p">qun</span>=<span class="v">群号</span></div>
-        </div>
+                  </div>
         <div class="api-card qq">
           <div class="api-head"><div class="api-title">发起临时会话</div><span class="api-tag qq">mqqwpa</span></div>
           <div class="api-desc">无需加好友，打开临时聊天窗口</div>
-          <div class="api-code">/<span class="k">api-qq.chat</span>?<span class="p">qq</span>=<span class="v">QQ号</span></div>
-        </div>
+                  </div>
         <div class="api-card qq">
           <div class="api-head"><div class="api-title">跳转到 QQ 名片</div><span class="api-tag qq">mqqapi</span></div>
           <div class="api-desc">打开个人名片，可加好友</div>
-          <div class="api-code">/<span class="k">api-qq</span>?<span class="p">qq</span>=<span class="v">QQ号</span></div>
-        </div>
+                  </div>
       </div>
     </section>
 
@@ -156,23 +149,19 @@
         <div class="api-card wx">
           <div class="api-head"><div class="api-title">添加微信好友</div><span class="api-tag wx">weixin</span></div>
           <div class="api-desc">输入微信号跳转加好友页（预填号）· 仅外部浏览器有效</div>
-          <div class="api-code">/<span class="k">api-wx</span>?<span class="p">wx</span>=<span class="v">微信号</span></div>
-        </div>
+                  </div>
         <div class="api-card wx">
           <div class="api-head"><div class="api-title">微信收款码</div><span class="api-tag wx">wxp</span></div>
           <div class="api-desc">一键弹付款页 · 微信内外都能用 · 需配置环境变量</div>
-          <div class="api-code">/<span class="k">api-wx.pay</span></div>
-        </div>
+                  </div>
         <div class="api-card wx">
           <div class="api-head"><div class="api-title">微信扫一扫</div><span class="api-tag wx">weixin</span></div>
           <div class="api-desc">唤起扫一扫功能 · 仅外部浏览器有效</div>
-          <div class="api-code">/<span class="k">api-wx.scan</span></div>
-        </div>
+                  </div>
         <div class="api-card wx">
           <div class="api-head"><div class="api-title">视频号资料页</div><span class="api-tag wx">weixin</span></div>
           <div class="api-desc">跳转到指定视频号主页 · 仅外部浏览器有效</div>
-          <div class="api-code">/<span class="k">api-wx.channels</span>?<span class="p">username</span>=<span class="v">视频号ID</span></div>
-        </div>
+                  </div>
       </div>
     </section>
 
