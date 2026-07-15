@@ -296,7 +296,7 @@
       var url = buildUrl();
       resultEl.textContent = url;
       resultEl.classList.add('show');
-      window.open(url, '_blank');
+      window.location.href = url;
     });
 
     copyBtn.addEventListener('click', function() {
