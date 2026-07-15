@@ -215,7 +215,7 @@ export function buildErrorResponse(message, status = 400) {
  */
 export function buildRedirect(targetUrl, ua = '') {
   const inApp = /QQ\/|MQQBrowser|MicroMessenger/.test(ua);
-  if (inApp) return buildGuidePageQR(targetUrl);
+  if (inApp) return buildGuidePage(targetUrl);
   return buildQuickRedirect(targetUrl);
 }
 
