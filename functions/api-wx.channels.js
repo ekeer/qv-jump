@@ -6,6 +6,6 @@ export async function onRequestGet(context) {
   const username = (url.searchParams.get('username') || '').trim();
   if (!username) return buildErrorResponse('缺少 username 参数');
   if (!isValidChannelsId(username)) return buildErrorResponse('username 参数格式不正确');
-  return buildRedirect(`weixin://channelsprofile?username=${encodeURIComponent(username)}`);
+  return buildRedirect(`weixin://channelsprofile?username=${encodeURIComponent(username)}`, context.request.headers.get('user-agent') || '');
 }
 export const onRequestPost = onRequestGet;

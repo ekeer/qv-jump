@@ -209,27 +209,28 @@ export function buildErrorResponse(message, status = 400) {
 }
 
 /**
- * 跳转：QQ JS-SDK + iframe + location.replace 三重保障
- * - mqqapi:// 自动加 source=qrcode&web_src=qq.com（伪装来源，提升 QQ 内兼容性）
- * - APP 内：加载 QQ JS-SDK，mqq.ui.openUrl 打开协议 + iframe 兜底
- * - 外部浏览器：location.replace 直接唤起
+ * 跳转：根据 UA 返回不同页面
+ * - QQ/微信内置浏览器：返回导航页（引导在浏览器打开）
+ * - 外部浏览器：极简 JS location.replace
  */
-export function buildRedirect(targetUrl) {
+export function buildRedirect(targetUrl, ua = '') {
+  const inApp = /QQ\/|MQQBrowser|MicroMessenger/.test(ua);
+  if (inApp) return buildGuidePage(targetUrl);
+  return buildQuickRedirect(targetUrl);
+}
+
+function buildQuickRedirect(targetUrl) {
   let url = targetUrl;
-  if (url.startsWith('mqqapi://')) {
-    if (!url.includes('source=')) url += '&source=qrcode';
-    if (!url.includes('web_src=')) url += '&web_src=qq.com';
-  }
+  if (url.startsWith('mqqapi://') && !url.includes('source=')) url += '&source=qrcode';
   const json = JSON.stringify(url);
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><script src="https://open.mobile.qq.com/sdk/qqapi.js?_bid=152"></script></head><body><script>(function(){var u=${json};var inApp=/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent);if(inApp){if(window.mqq&&mqq.ui&&mqq.ui.openUrl){try{mqq.ui.openUrl({target:0,url:u})}catch(e){}}var f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(function(){try{f.parentNode.removeChild(f)}catch(e){}},2000)}else{try{location.replace(u)}catch(e){location.href=u}}})()</script></body></html>`;
-  return new Response(html, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
-      'Referrer-Policy': 'no-referrer'
-    }
-  });
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"></head><body><script>try{location.replace(${json})}catch(e){location.href=${json}}</script></body></html>`;
+  return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Referrer-Policy': 'no-referrer' } });
+}
+
+function buildGuidePage(targetUrl) {
+  const json = JSON.stringify(targetUrl);
+  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><title>需要在浏览器中打开</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#f0f4f8,#e8eef5);min-height:100vh;color:#1f2329;-webkit-font-smoothing:antialiased}.c{max-width:420px;margin:0 auto;padding:40px 24px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}.ic{width:88px;height:88px;border-radius:24px;background:linear-gradient(135deg,#4facfe,#00c6fb);display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 12px 32px rgba(79,172,254,.3)}.ic svg{width:44px;height:44px}h1{font-size:22px;font-weight:700;margin-bottom:10px;text-align:center}.d{font-size:14px;color:#8a8f99;line-height:1.6;text-align:center;margin-bottom:32px}.s{width:100%;background:#fff;border-radius:16px;padding:24px 20px;margin-bottom:24px;box-shadow:0 4px 20px rgba(0,0,0,.04)}.st{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}.st:last-child{margin-bottom:0}.n{width:28px;height:28px;border-radius:50%;background:#4facfe;color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}.t{font-size:14px;line-height:1.6;padding-top:4px}.t b{color:#4facfe}.b{width:100%;padding:14px;background:#1f2329;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s}.b:active{transform:scale(.97)}.b.ok{background:#07c160}.tip{font-size:12px;color:#c0c4cc;margin-top:16px;text-align:center}</style></head><body><div class="c"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><h1>需要在浏览器中打开</h1><p class="d">当前应用内不支持直接跳转<br>请在系统浏览器中打开本页面</p><div class="s"><div class="st"><div class="n">1</div><div class="t">点击右上角 <b>···</b> 按钮</div></div><div class="st"><div class="n">2</div><div class="t">选择 <b>「在浏览器打开」</b></div></div><div class="st"><div class="n">3</div><div class="t">页面将自动跳转到对应功能</div></div></div><button class="b" id="cp">复制链接</button><p class="tip">或复制链接后粘贴到浏览器地址栏</p></div><script>setTimeout(function(){try{location.replace(${json})}catch(e){}},500);document.getElementById('cp').addEventListener('click',function(){navigator.clipboard.writeText(location.href).then(function(){var b=document.getElementById('cp');b.textContent='\u2713 \u5df2\u590d\u5236\uff0c\u53bb\u6d4f\u89c8\u5668\u7c98\u8d34';b.classList.add('ok')})})</script></body></html>`;
+  return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Referrer-Policy': 'no-referrer' } });
 }
 
 function escapeHtml(s) {

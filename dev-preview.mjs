@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 本地预览服务器 —— 极简 JS 跳转（与生产环境一致）
+// 本地预览服务器
 // 用法: node dev-preview.mjs
 // 微信收款码: WXP_PAY_URL="wxp://f2f0xxxx" node dev-preview.mjs
 
@@ -14,22 +14,18 @@ const PORT = process.env.PORT || 8788;
 
 function redir(targetUrl) {
   let url = targetUrl;
-  if (url.startsWith('mqqapi://')) {
-    if (!url.includes('source=')) url += '&source=qrcode';
-    if (!url.includes('web_src=')) url += '&web_src=qq.com';
-  }
+  if (url.startsWith('mqqapi://') && !url.includes('source=')) url += '&source=qrcode';
   const json = JSON.stringify(url);
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><script src="https://open.mobile.qq.com/sdk/qqapi.js?_bid=152"></script></head><body><script>(function(){var u=${json};var inApp=/QQ\\/|MQQBrowser|MicroMessenger/.test(navigator.userAgent);if(inApp){if(window.mqq&&mqq.ui&&mqq.ui.openUrl){try{mqq.ui.openUrl({target:0,url:u})}catch(e){}}var f=document.createElement('iframe');f.style.display='none';f.src=u;document.body.appendChild(f);setTimeout(function(){try{f.parentNode.removeChild(f)}catch(e){}},2000)}else{try{location.replace(u)}catch(e){location.href=u}}})()</script></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><script>try{location.replace(${json})}catch(e){location.href=${json}}</script></body></html>`;
   return { status: 200, body: html };
 }
 function err(msg, status = 400) { return { status, body: renderErrorHtml(msg) }; }
 
-// ---- QQ ----
 function handleQun(url) {
   const qun = (url.searchParams.get('qun') || '').trim();
   if (!qun) return err('缺少 qun 参数');
   if (!isValidUin(qun)) return err('qun 参数格式不正确（应为 4-14 位纯数字）');
-  return redir(`mqqwpa://im/chat?chat_type=group&uin=${qun}`);
+  return redir(`mqqapi://card/show_pslcard?src_type=internal&version=1&card_type=group&uin=${qun}`);
 }
 function handleChat(url) {
   const qq = (url.searchParams.get('qq') || '').trim();
@@ -43,8 +39,6 @@ function handleCard(url) {
   if (!isValidUin(qq)) return err('qq 参数格式不正确（应为 4-14 位纯数字）');
   return redir(`mqqapi://card/show_pslcard?src_type=internal&version=1&uin=${qq}`);
 }
-
-// ---- 微信 ----
 function handleWxAdd(url) {
   const wx = (url.searchParams.get('wx') || '').trim();
   if (!wx) return err('缺少 wx 参数');
@@ -67,7 +61,6 @@ function handleWxChannels(url) {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
-
   if (pathname === '/' || pathname === '/index.html') {
     try {
       const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf-8');
@@ -79,7 +72,6 @@ const server = http.createServer((req, res) => {
     }
     return;
   }
-
   let result = null;
   if (pathname === '/api-qq.qun') result = handleQun(url);
   else if (pathname === '/api-qq.chat') result = handleChat(url);
@@ -88,13 +80,11 @@ const server = http.createServer((req, res) => {
   else if (pathname === '/api-wx.pay') result = handleWxPay();
   else if (pathname === '/api-wx.scan') result = handleWxScan();
   else if (pathname === '/api-wx.channels') result = handleWxChannels(url);
-
   if (result) {
     res.writeHead(result.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(result.body);
     return;
   }
-
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('404 Not Found');
 });
@@ -102,5 +92,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   const base = `http://localhost:${PORT}`;
   const wxp = process.env.WXP_PAY_URL ? '✓' : '✗';
-  console.log(`\n  QQ/微信跳转预览 ✓ (JS location.replace)\n  ─────────────────────────────\n  跳群:     ${base}/api-qq.qun?qun=123456789\n  临时会话: ${base}/api-qq.chat?qq=10001\n  名片:     ${base}/api-qq?qq=10001\n  加好友:   ${base}/api-wx?wx=abc123\n  收款码:   ${base}/api-wx.pay  (${wxp})\n  扫一扫:   ${base}/api-wx.scan\n  视频号:   ${base}/api-wx.channels?username=v2_xxx\n  ─────────────────────────────\n  Ctrl+C 停止\n`);
+  console.log(`\n  QQ/微信跳转预览 ✓\n  ─────────────────────────────\n  跳群:     ${base}/api-qq.qun?qun=123456789\n  临时会话: ${base}/api-qq.chat?qq=10001\n  名片:     ${base}/api-qq?qq=10001\n  加好友:   ${base}/api-wx?wx=abc123\n  收款码:   ${base}/api-wx.pay  (${wxp})\n  扫一扫:   ${base}/api-wx.scan\n  视频号:   ${base}/api-wx.channels?username=v2_xxx\n  ─────────────────────────────\n  Ctrl+C 停止\n`);
 });
