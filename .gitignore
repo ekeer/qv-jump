@@ -1,0 +1,16 @@
+# 依赖
+node_modules/
+
+# Wrangler / Cloudflare 本地缓存
+.wrangler/
+.dev.vars
+
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 日志
+*.log
+npm-debug.log*

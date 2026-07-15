@@ -1,0 +1,17 @@
+{
+  "name": "qqjump",
+  "version": "1.0.0",
+  "description": "Cloudflare Pages - QQ 协议跳转服务（跳群 / 临时会话 / 名片）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "dev:simple": "node dev-preview.mjs",
+    "deploy": "wrangler pages deploy ."
+  },
+  "keywords": ["cloudflare-pages", "qq", "mqqapi", "mqqwpa", "redirect"],
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
